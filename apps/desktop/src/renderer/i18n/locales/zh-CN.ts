@@ -2071,6 +2071,21 @@ const zhCN: Resources = {
       desc: "色彩浓度，可降至灰度",
       params: { amount: "数量" },
     },
+    temperature: {
+      name: "色温",
+      desc: "白平衡：偏暖或偏冷",
+      params: { amount: "数量" },
+    },
+    tint: {
+      name: "色调偏移",
+      desc: "白平衡：偏绿或偏洋红",
+      params: { amount: "数量" },
+    },
+    hue: {
+      name: "色相",
+      desc: "沿色轮旋转颜色",
+      params: { amount: "角度 (°)" },
+    },
     sharpen: {
       name: "锐化",
       desc: "让偏软或缩小后的画面更清晰",

@@ -2315,6 +2315,21 @@ const enUS = {
       desc: "Color intensity, down to gray",
       params: { amount: "Amount" },
     },
+    temperature: {
+      name: "Temperature",
+      desc: "White balance: warmer or cooler",
+      params: { amount: "Amount" },
+    },
+    tint: {
+      name: "Tint",
+      desc: "White balance: green or magenta",
+      params: { amount: "Amount" },
+    },
+    hue: {
+      name: "Hue",
+      desc: "Rotate colors around the color wheel",
+      params: { amount: "Angle (°)" },
+    },
     sharpen: {
       name: "Sharpen",
       desc: "Crisp soft or downscaled footage",

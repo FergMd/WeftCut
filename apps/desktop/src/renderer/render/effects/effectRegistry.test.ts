@@ -4,7 +4,14 @@ import { BlurFilter, ColorMatrixFilter } from "pixi.js";
 import { getDescriptor } from "./effectRegistry";
 import { ChromaKeyFilter } from "./filters/ChromaKeyFilter";
 import { SharpenFilter } from "./filters/SharpenFilter";
-import { writeBrightness, writeContrast, writeSaturation } from "./filters/colorMatrices";
+import {
+  writeBrightness,
+  writeContrast,
+  writeHue,
+  writeSaturation,
+  writeTemperature,
+  writeTint,
+} from "./filters/colorMatrices";
 
 import { listEffects } from "./effectRegistry";
 import { VISUAL_EFFECT_PARAMS } from "../../../shared/effects/params";
@@ -144,6 +151,64 @@ describe("the colour-matrix trio", () => {
     const byKind = new Map(listEffects().map((d) => [d.kind, d]));
     for (const kind of Object.keys(TRIO)) {
       expect(byKind.get(kind)?.category, kind).toBe("color");
+    }
+  });
+});
+
+describe("white balance and hue", () => {
+  const NEW = {
+    temperature: { write: writeTemperature, range: [-100, 100], probe: 40 },
+    tint: { write: writeTint, range: [-100, 100], probe: 40 },
+    hue: { write: writeHue, range: [-180, 180], probe: 90 },
+  } as const;
+
+  for (const [kind, { write, range, probe }] of Object.entries(NEW)) {
+    it(`${kind} is a Color-category ColorMatrixFilter wired to its own writer`, () => {
+      const d = getDescriptor(kind)!;
+      expect(d.category).toBe("color");
+      expect(d.nameI18nKey).toBe(`effects.${kind}.name`);
+      expect(Object.keys(d.params)).toEqual(["amount"]);
+      expect(d.params.amount!.default).toBe(0);
+      expect(d.params.amount!.range).toEqual(range);
+      const f = d.create() as ColorMatrixFilter;
+      expect(f).toBeInstanceOf(ColorMatrixFilter);
+      const live = f.matrix;
+      d.params.amount!.apply(f, probe);
+      expect(f.matrix).toBe(live);
+      const want = new Array<number>(20).fill(NaN);
+      write(want, probe);
+      expect([...f.matrix]).toEqual(want);
+    });
+
+    it(`${kind} at amount 0 is the identity matrix`, () => {
+      const m = new Array<number>(20).fill(NaN);
+      write(m, 0);
+      const id = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
+      m.forEach((v, i) => expect(v).toBeCloseTo(id[i]!, 12));
+    });
+  }
+
+  it("temperature warms with positive amounts and leaves green alone", () => {
+    const m = new Array<number>(20).fill(NaN);
+    writeTemperature(m, 100);
+    expect(m[0]).toBeCloseTo(1.25, 12);
+    expect(m[6]).toBe(1);
+    expect(m[12]).toBeCloseTo(0.75, 12);
+  });
+
+  it("tint pushes magenta (green down) with positive amounts", () => {
+    const m = new Array<number>(20).fill(NaN);
+    writeTint(m, 100);
+    expect(m[0]).toBe(1);
+    expect(m[6]).toBeCloseTo(0.75, 12);
+    expect(m[12]).toBe(1);
+  });
+
+  it("hue rotation preserves grey: every row sums to 1", () => {
+    const m = new Array<number>(20).fill(NaN);
+    writeHue(m, 137);
+    for (const row of [0, 5, 10]) {
+      expect(m[row]! + m[row + 1]! + m[row + 2]!).toBeCloseTo(1, 2);
     }
   });
 });

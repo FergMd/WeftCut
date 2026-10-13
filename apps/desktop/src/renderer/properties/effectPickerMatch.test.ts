@@ -120,7 +120,9 @@ describe("the shipped catalog", () => {
     const groups = groupEffects(rowsIn(en));
     const color = groups.find((g) => g.category === "color")!;
     expect(color.label).toBe("Color");
-    expect(color.items.map((i) => i.kind)).toEqual(["brightness", "contrast", "saturation"]);
+    expect(color.items.map((i) => i.kind)).toEqual([
+      "brightness", "contrast", "saturation", "temperature", "tint", "hue",
+    ]);
   });
 
   it("groups sharpen under Stylize", () => {

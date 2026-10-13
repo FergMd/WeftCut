@@ -82,3 +82,49 @@ export function writeSaturation(out: number[], amount: number): void {
   out[10] = lr * k; out[11] = lg * k; out[12] = lb * k + s; out[13] = 0; out[14] = 0;
   writeAlphaRow(out);
 }
+
+/// Per-channel gains, no cross-talk: the shared shape of temperature and tint.
+function writeChannelGains(out: number[], r: number, g: number, b: number): void {
+  out[0] = r; out[1] = 0; out[2] = 0; out[3] = 0; out[4] = 0;
+  out[5] = 0; out[6] = g; out[7] = 0; out[8] = 0; out[9] = 0;
+  out[10] = 0; out[11] = 0; out[12] = b; out[13] = 0; out[14] = 0;
+  writeAlphaRow(out);
+}
+
+/// White-balance temperature: positive warms (red up, blue down), negative
+/// cools. Gains are ±25 % at the ends of [-100, 100]; green is untouched;
+/// `amount = 0` is the identity.
+export function writeTemperature(out: number[], amount: number): void {
+  const t = amount / 100;
+  writeChannelGains(out, 1 + 0.25 * t, 1, 1 - 0.25 * t);
+}
+
+/// White-balance tint on the green–magenta axis: positive pushes magenta
+/// (green down), negative pushes green. ±25 % green gain at the ends;
+/// `amount = 0` is the identity.
+export function writeTint(out: number[], amount: number): void {
+  const t = amount / 100;
+  writeChannelGains(out, 1, 1 - 0.25 * t, 1);
+}
+
+/// Hue rotation in degrees, [-180, 180], about the luma axis (the W3C
+/// `hue-rotate` matrix, whose weights are the Rec.709 luma to three places).
+/// `amount = 0` is the identity; ±180 are the same complement hue.
+export function writeHue(out: number[], amount: number): void {
+  const rad = (amount * Math.PI) / 180;
+  const c = Math.cos(rad);
+  const s = Math.sin(rad);
+  out[0] = 0.213 + c * 0.787 - s * 0.213;
+  out[1] = 0.715 - c * 0.715 - s * 0.715;
+  out[2] = 0.072 - c * 0.072 + s * 0.928;
+  out[3] = 0; out[4] = 0;
+  out[5] = 0.213 - c * 0.213 + s * 0.143;
+  out[6] = 0.715 + c * 0.285 + s * 0.14;
+  out[7] = 0.072 - c * 0.072 - s * 0.283;
+  out[8] = 0; out[9] = 0;
+  out[10] = 0.213 - c * 0.213 - s * 0.787;
+  out[11] = 0.715 - c * 0.715 + s * 0.715;
+  out[12] = 0.072 + c * 0.928 + s * 0.072;
+  out[13] = 0; out[14] = 0;
+  writeAlphaRow(out);
+}

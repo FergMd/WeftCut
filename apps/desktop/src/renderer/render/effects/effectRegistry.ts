@@ -15,7 +15,10 @@ import { SharpenFilter } from "./filters/SharpenFilter";
 import {
   writeBrightness,
   writeContrast,
+  writeHue,
   writeSaturation,
+  writeTemperature,
+  writeTint,
 } from "./filters/colorMatrices";
 
 /// Picker grouping only — purely presentational. The render path never reads
@@ -161,6 +164,9 @@ const REGISTRY: Record<string, EffectDescriptor> = {
   brightness: colorMatrixEffect("brightness", writeBrightness),
   contrast: colorMatrixEffect("contrast", writeContrast),
   saturation: colorMatrixEffect("saturation", writeSaturation),
+  temperature: colorMatrixEffect("temperature", writeTemperature),
+  tint: colorMatrixEffect("tint", writeTint),
+  hue: colorMatrixEffect("hue", writeHue),
   sharpen: {
     kind: "sharpen",
     nameI18nKey: "effects.sharpen.name",
